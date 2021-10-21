@@ -11,8 +11,6 @@
 #include <random>
 #include <algorithm>
 #include <cstdint>
-#include "jitTestFactory.hpp"
-#include "gtest/gtest.h"
 
 //Test instances and groupings
 
