@@ -14,9 +14,10 @@ set(CMAKE_C_STANDARD 99)
 
 message(STATUS "${CMAKE_CXX_FLAGS}")
 
+file(GLOB GRAPHBLAS_CUDA_SOURCES "*.cu" "*.c")
+
 add_library(graphblascuda SHARED
-    GB_AxB_dot3_cuda.cu
-#    GB_reduce_to_scalar_cuda.cu
+        ${GRAPHBLAS_CUDA_SOURCES}
 )
 
 set(GRAPHBLAS_CUDA_INCLUDES
@@ -34,6 +35,8 @@ set_target_properties(graphblascuda PROPERTIES POSITION_INDEPENDENT_CODE ON)
 set_target_properties(graphblascuda PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 set_target_properties(graphblascuda PROPERTIES CUDA_ARCHITECTURES "75")
 
+target_link_libraries(graphblascuda nvrtc cuda)
+
 # 1. Execute enumify/stringify/jitify logic to compile ptx kernels and compile/link w/ relevant *.cu files.
 
 # TODO: Need to do this piece in cmake
@@ -49,7 +52,7 @@ set(CUDA_TEST_MONOIDS PLUS) #MIN MAX TIMES ANY)
 set(CUDA_TEST_BINOPS TIMES) #PLUS MIN MAX DIV MINUS RDIV RMINUS FIRST SECOND PAIR)
 set(CUDA_TEST_SEMIRINGS PLUS_TIMES) # MIN_PLUS MAX_PLUS)
 set(CUDA_TEST_DATATYPES int32_t ) #int64_t uint32_t uint64_t float double)
-set(CUDA_TEST_KERNELS mp) # mp vsvs dndn spdn vssp)
+set(CUDA_TEST_KERNELS vsvs) # mp vsvs dndn spdn vssp)
 
 # TODO: Update testGen.py to accept the above CUDA_TEST_* params as arguments
 
@@ -72,7 +75,7 @@ foreach(var ${CUDA_TEST_SUITES})
                     ${CMAKE_CURRENT_BINARY_DIR}/${var}_${semiring}_${kernel}_test_instances.hpp
                     ${CMAKE_CURRENT_BINARY_DIR}/${var}_${semiring}_${kernel}_cuda_tests.cu
                     DEPENDS
-                    ${CMAKE_CURRENT_SOURCE_DIR}/test/jitFactory.hpp
+                    jitFactory.hpp
                     COMMAND python ${CMAKE_CURRENT_SOURCE_DIR}/test/testGen_cmake.py "\"${CMAKE_CURRENT_SOURCE_DIR}\"" "\"${var}\"" "\"${CUDA_TEST_MONOIDS}\""
                         "\"${CUDA_TEST_BINOPS}\"" "\"${semiring}\"" "\"${CUDA_TEST_DATATYPES}\""
                         "\"${kernel}\""
@@ -109,7 +112,7 @@ set(GRAPHBLAS_CUDA_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/test)
 
 message(STATUS "${CUDA_TEST_CPP_FILES}")
 
-add_executable(graphblascuda_test ${CUDA_TEST_CPP_FILES} ${CMAKE_CURRENT_SOURCE_DIR}/test/run_tests.cpp)
+add_executable(graphblascuda_test ${CUDA_TEST_CPP_FILES} ${CMAKE_CURRENT_SOURCE_DIR}/test/run_tests.cu)
 target_include_directories(graphblascuda_test PUBLIC
         ${CUDA_INCLUDE_DIRECTORIES}
         ${GRAPHBLAS_CUDA_INCLUDES})
@@ -129,6 +132,8 @@ target_link_libraries(graphblascuda_test
         graphblascuda
         graphblas
         gtest_main
+        nvrtc
+        cuda
         ${ADDITIONAL_DEPS})
 
 target_include_directories(graphblascuda_test PUBLIC

@@ -12,7 +12,7 @@
 #include <random>
 #include <algorithm>
 #include <cstdint>
-#include "jitTestFactory.hpp"
+#include "test/jitTestFactory.hpp"
 #include <gtest/gtest.h>
 
 

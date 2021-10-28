@@ -33,7 +33,7 @@
  */
 
 
-#include "jitTestFactory.hpp"
+#include "../test/jitTestFactory.hpp"
 
 
 int main(int argc, char* argv[]) {

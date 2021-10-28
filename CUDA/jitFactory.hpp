@@ -47,9 +47,9 @@
 #define JITIFY_PRINT_LINKER_LOG 1
 #define JITIFY_PRINT_LAUNCH 1
 
-#include "dataFactory.hpp"
-#include "semiringFactory.hpp"
-#include "../GB_cuda.h"
+#include "test/dataFactory.hpp"
+#include "test/semiringFactory.hpp"
+#include "GB_cuda.h"
 
 
 #if __cplusplus >= 201103L
