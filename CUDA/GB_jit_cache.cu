@@ -91,18 +91,23 @@ GBJitCache::GBJitCache() { }
 
 GBJitCache::~GBJitCache() { }
 
+
+//void GBJitCache::macrofy() {
+//    printf("GOT HERE and shouldn't have!\n");
+//}
+
+
 std::mutex GBJitCache::_kernel_cache_mutex;
 std::mutex GBJitCache::_program_cache_mutex;
 
 std::string GBJitCache::getFile(
-    File_Desc const &file_object )
+    File_Desc &file_object )
 {
     // Lock for thread safety
     std::lock_guard<std::mutex> lock(_program_cache_mutex);
 
     auto cached_file = getCachedFile( file_object, file_map );
     return *std::get<1>( cached_file ).get();
-
 }
 
 named_prog<jitify::experimental::Program> GBJitCache::getProgram(

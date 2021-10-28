@@ -36,12 +36,12 @@ std::string getCacheDir(void);
 using named_prog = std::pair<std::string, std::shared_ptr<Tv>>;
 
 // Basic file descriptor to enable file manipulation with caching 
-class File_Desc 
+class File_Desc
 {
 public:
-   void open_file();
-   void close_file();
-   std::string macrofy() const;
+   void open_file() {}
+   void close_file() {}
+   void macrofy() {}
    std::string filename;
 };
 
@@ -58,7 +58,7 @@ public:
  * The default cache directory `~/.GraphBLAS_kernel_cache`.
  **/
 
-class GBJitCache: public File_Desc
+class GBJitCache
 {
 public:
 
@@ -85,7 +85,7 @@ public:
      * @param file_desc [in] object representing file:  open, macrofy, close 
      * @return  string name of file, or 'error' if not able to create file  
      *---------------------------------------------------------------------------**/
-    std::string getFile( File_Desc const& file_obj );
+    std::string getFile( File_Desc & file_obj );
 
     /**---------------------------------------------------------------------------*
      * @brief Get the Kernel Instantiation object
@@ -194,7 +194,7 @@ private:
 
     template <typename T>
     named_prog<T> getCachedFile( 
-        File_Desc const &file_object,
+        File_Desc &file_object,
         umap_str_shptr<T>& map )
     {
      
@@ -221,7 +221,7 @@ private:
             #endif
             if (not successful_read) {
                 // JIT compile and write to file if possible
-                serialized = file_object.macrofy();
+                file_object.macrofy();
                 std::cout<<" got fresh content for "<<name<<std::endl;
 
                 #if defined(JITIFY_USE_CACHE)
@@ -229,6 +229,9 @@ private:
                         std::string file_name = cache_dir + name;
                         std::cout<<"writing in file "<<file_name<<std::endl;
                         cacheFile file{file_name};
+
+                        cacheFile macrofied{file_object.filename};
+                        serialized = macrofied.read_file();
                         file.write(serialized);
                     }
                 #endif

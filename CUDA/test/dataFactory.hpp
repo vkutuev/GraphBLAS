@@ -107,7 +107,9 @@ class matrix : public Managed {
 //     int64_t nzmax;
 //    int64_t nvals;
 
-     matrix(){};
+     matrix(){
+         mat = (GrB_Matrix)calloc(sizeof(struct GB_Matrix_opaque));
+     };
 
      matrix( int64_t N, int64_t nvecs) {
          mat = (GrB_Matrix)malloc(sizeof(GrB_Matrix));
@@ -147,29 +149,30 @@ class matrix : public Managed {
  
      void fill_random(  int64_t N, int64_t Nz, std::mt19937 r) {
 
+         std::cout << "inside fill" << std::endl;
          int64_t *p = mat->p;
          int64_t *i = mat->i;
          T *x = (T*)mat->x;
         int64_t inv_sparsity = (N*N)/Nz;   //= values not taken per value occupied in index space
 
-        //std::cout<< "fill_random N="<< N<<" need "<< Nz<<" values, invsparse = "<<inv_sparsity<<std::endl;
+        std::cout<< "fill_random N="<< N<<" need "<< Nz<<" values, invsparse = "<<inv_sparsity<<std::endl;
         alloc( N, Nz);
 
-        //std::cout<< "fill_random"<<" after alloc values"<<std::endl;
+        std::cout<< "fill_random"<<" after alloc values"<<std::endl;
         mat->vdim = N;
-        //std::cout<<"vdim ready "<<std::endl;
+        std::cout<<"vdim ready "<<std::endl;
         mat->vlen = N;
-        //std::cout<<"vlen ready "<<std::endl;
+        std::cout<<"vlen ready "<<std::endl;
         nnz = Nz;
-        //std::cout<<"ready to fill p"<<std::endl;
+        std::cout<<"ready to fill p"<<std::endl;
 
         mat->p[0] = 0;
         mat->p[N] = nnz;
 
-        //std::cout<<"   in fill loop"<<std::endl;
+        std::cout<<"   in fill loop"<<std::endl;
         for (int64_t j = 0; j < N; ++j) {
            p[j+1] = p[j] + Nz/N;
-           //std::cout<<" row "<<j<<" has "<< p[j+1]-p[j]<<" entries."<<std::endl;
+           std::cout<<" row "<<j<<" has "<< p[j+1]-p[j]<<" entries."<<std::endl;
            for ( int k = p[j] ; k < p[j+1]; ++k) {
                i[k] = (k-p[j])*inv_sparsity +  r() % inv_sparsity;
                x[k] = (T) (k & 63) ;

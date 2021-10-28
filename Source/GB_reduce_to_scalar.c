@@ -99,7 +99,7 @@ GrB_Info GB_reduce_to_scalar    // s = reduce_to_scalar (A)
     // s = reduce_to_scalar (A) on the GPU(s) or CPU
     //--------------------------------------------------------------------------
 
-    #if defined ( GBCUDA )
+    #if 0 && defined ( GBCUDA )
     if (GB_reduce_to_scalar_cuda_branch (reduce, A, Context))
     {
 

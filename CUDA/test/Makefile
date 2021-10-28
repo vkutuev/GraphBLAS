@@ -108,7 +108,7 @@ cu_link.o: $(CU_OBJS)
 	nvcc --gpu-architecture=compute_75 --device-link $(CU_OBJS)  --output-file cu_link.o
 
 
-testJit: testJit.cpp $(OBJS) $(HEADERS) $(JIT_TEMP) 
+testJit: ../tofix/testJit.cpp $(OBJS) $(HEADERS) $(JIT_TEMP)
 	$(GXX) -o $@ $< $(CXXFLAGS) $(INC) $(OBJS) $(LIB)
 
 AxB_dot3_test_instances.hpp:  testGen.py
