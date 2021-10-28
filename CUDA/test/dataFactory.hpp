@@ -7,6 +7,7 @@
 #include <random>
 
 #include "GraphBLAS.h"
+#include "../GB_Matrix_allocate.h"
 
 static const char *_cudaGetErrorEnum(cudaError_t error) {
   return cudaGetErrorName(error);
@@ -94,8 +95,8 @@ class matrix : public Managed {
   public:
     uint64_t zombie_count = 0;
     GrB_Matrix mat;
-//     int64_t vlen;
-//     int64_t vdim;
+     int64_t vlen;
+     int64_t vdim;
      int64_t nnz;
 //     int64_t *p = nullptr;
 //     int64_t *h = nullptr;
@@ -108,14 +109,12 @@ class matrix : public Managed {
 //    int64_t nvals;
 
      matrix(){
-         mat = (GrB_Matrix)calloc(sizeof(struct GB_Matrix_opaque));
      };
 
-     matrix( int64_t N, int64_t nvecs) {
-         mat = (GrB_Matrix)malloc(sizeof(GrB_Matrix));
-        mat->vlen = N;
-        mat->vdim = nvecs;
-     }
+//     matrix( int64_t N, int64_t nvecs) {
+//        vlen = N;
+//        vdim = nvecs;
+//     }
 
      GrB_Matrix get_grb_matrix() {
          return mat;
@@ -126,37 +125,31 @@ class matrix : public Managed {
      void add_zombie_count( int nz) { mat->nzombies += nz;}
 
      void clear() {
-        if ( mat->p != nullptr){  cudaFree(mat->p); mat->p = nullptr; }
-        if ( mat->h != nullptr){  cudaFree(mat->h); mat->h = nullptr; }
-        if ( mat->i != nullptr){  cudaFree(mat->i); mat->i = nullptr; }
-        if ( mat->x != nullptr){  cudaFree(mat->x); mat->x = nullptr; }
-        is_filled = false;
-         nnz  = 0;
-        mat->vlen = 0;
-        mat->vdim = 0;
-        mat->nzombies = 0;
+//        if ( mat->p != nullptr){  cudaFree(mat->p); mat->p = nullptr; }
+//        if ( mat->h != nullptr){  cudaFree(mat->h); mat->h = nullptr; }
+//        if ( mat->i != nullptr){  cudaFree(mat->i); mat->i = nullptr; }
+//        if ( mat->x != nullptr){  cudaFree(mat->x); mat->x = nullptr; }
+//        is_filled = false;
+//         nnz  = 0;
+//        mat->vlen = 0;
+//        mat->vdim = 0;
+//        mat->nzombies = 0;
      }
 
      void alloc( int64_t N, int64_t Nz) {
-
-        //cudaMallocManaged((void**)&p, (Nz+N+1)*sizeof(int64_t)+ (Nz*sizeof(T)));
-        //i = p+(N+1);
-        //x = (T*)(p + (Nz+N+1));
-        CHECK_CUDA( cudaMallocManaged((void**)&(mat->p), (N+1)*sizeof(int64_t)) );
-        CHECK_CUDA( cudaMallocManaged((void**)&(mat->i), Nz*sizeof(int64_t)) );
-        CHECK_CUDA( cudaMallocManaged((void**)&(mat->x), Nz*sizeof(T)) );
+         mat = GB_matrix_allocate(GrB_FP32, N, N, 2, false, false, Nz, -1);
      }
  
      void fill_random(  int64_t N, int64_t Nz, std::mt19937 r) {
 
          std::cout << "inside fill" << std::endl;
+         alloc( N, Nz);
          int64_t *p = mat->p;
          int64_t *i = mat->i;
          T *x = (T*)mat->x;
         int64_t inv_sparsity = (N*N)/Nz;   //= values not taken per value occupied in index space
 
         std::cout<< "fill_random N="<< N<<" need "<< Nz<<" values, invsparse = "<<inv_sparsity<<std::endl;
-        alloc( N, Nz);
 
         std::cout<< "fill_random"<<" after alloc values"<<std::endl;
         mat->vdim = N;
@@ -172,7 +165,6 @@ class matrix : public Managed {
         std::cout<<"   in fill loop"<<std::endl;
         for (int64_t j = 0; j < N; ++j) {
            p[j+1] = p[j] + Nz/N;
-           std::cout<<" row "<<j<<" has "<< p[j+1]-p[j]<<" entries."<<std::endl;
            for ( int k = p[j] ; k < p[j+1]; ++k) {
                i[k] = (k-p[j])*inv_sparsity +  r() % inv_sparsity;
                x[k] = (T) (k & 63) ;

@@ -211,7 +211,8 @@ private:
             #if defined(JITIFY_USE_CACHE)
                 std::string cache_dir = getCacheDir();
                 if (not cache_dir.empty() ) {
-                    std::string file_name = cache_dir + name;
+                    // TODO: Use OS-agnostic path separator here
+                    std::string file_name = cache_dir + "/" + name;
                     //std::cout<<"looking for prog in file "<<file_name<<std::endl;
 
                     cacheFile file{file_name};
@@ -226,7 +227,7 @@ private:
 
                 #if defined(JITIFY_USE_CACHE)
                     if (not cache_dir.empty()) {
-                        std::string file_name = cache_dir + name;
+                        std::string file_name = cache_dir + "/" + name;
                         std::cout<<"writing in file "<<file_name<<std::endl;
                         cacheFile file{file_name};
 
@@ -266,7 +267,8 @@ private:
             #if defined(JITIFY_USE_CACHE)
                 std::string cache_dir = getCacheDir();
                 if (not cache_dir.empty() ) {
-                    std::string file_name = cache_dir + name;
+                    // TODO: Use OS-agnostic path separator
+                    std::string file_name = cache_dir + "/" + name;
                     //std::cout<<"looking for prog in file "<<file_name<<std::endl;
 
                     cacheFile file{file_name};
@@ -276,12 +278,13 @@ private:
             #endif
             if (not successful_read) {
                 // JIT compile and write to file if possible
+                    std::cout << "compiling now" << std::endl;
                 serialized = func().serialize();
                 std::cout<<" compiled serialized prog "<<name<<std::endl;
 
                 #if defined(JITIFY_USE_CACHE)
                     if (not cache_dir.empty()) {
-                        std::string file_name = cache_dir + name;
+                        std::string file_name = cache_dir + "/" + name;
                         std::cout<<"writing prog in file "<<file_name<<std::endl;
                         cacheFile file{file_name};
                         file.write(serialized);

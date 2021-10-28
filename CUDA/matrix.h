@@ -1,7 +1,6 @@
 //SPDX-License-Identifier: Apache-2.0
 
 #pragma once
-
 #define ASSERT(x)
 
 //------------------------------------------------------------------------------
@@ -34,6 +33,8 @@
 
 //------------------------------------------------------------------------------
 
+#include "GraphBLAS.h"
+
 #include "GB_imin.h"
 #include "GB_zombie.h"
 #include "GB_opaque.h"
@@ -65,31 +66,31 @@ typedef struct GB_Matrix_opaque *GrB_Matrix ;
 
 typedef void (*GxB_binary_function) (void *, const void *, const void *) ;
 
-typedef enum
-{
-    // for all GrB_Descriptor fields:
-    GxB_DEFAULT = 0,    // default behavior of the method
-
-    // for GrB_OUTP only:
-    GrB_REPLACE = 1,    // clear the output before assigning new values to it
-
-    // for GrB_MASK only:
-    GrB_COMP = 2,       // use the structural complement of the input
-    GrB_SCMP = 2,       // same as GrB_COMP (deprecated; use GrB_COMP instead)
-    GrB_STRUCTURE = 4,  // use the only pattern of the mask, not its values
-
-    // for GrB_INP0 and GrB_INP1 only:
-    GrB_TRAN = 3,       // use the transpose of the input
-
-    // for GxB_GPU_CONTROL only:
-    GxB_GPU_ALWAYS  = 4,
-    GxB_GPU_NEVER   = 5,
-
-    // for GxB_AxB_METHOD only:
-    GxB_AxB_GUSTAVSON = 1001,   // gather-scatter saxpy method
-    GxB_AxB_DOT       = 1003,   // dot product
-    GxB_AxB_HASH      = 1004,   // hash-based saxpy method
-    GxB_AxB_SAXPY     = 1005    // saxpy method (any kind)
-}
-GrB_Desc_Value ;
+//typedef enum
+//{
+//    // for all GrB_Descriptor fields:
+//    GxB_DEFAULT = 0,    // default behavior of the method
+//
+//    // for GrB_OUTP only:
+//    GrB_REPLACE = 1,    // clear the output before assigning new values to it
+//
+//    // for GrB_MASK only:
+//    GrB_COMP = 2,       // use the structural complement of the input
+//    GrB_SCMP = 2,       // same as GrB_COMP (deprecated; use GrB_COMP instead)
+//    GrB_STRUCTURE = 4,  // use the only pattern of the mask, not its values
+//
+//    // for GrB_INP0 and GrB_INP1 only:
+//    GrB_TRAN = 3,       // use the transpose of the input
+//
+//    // for GxB_GPU_CONTROL only:
+//    GxB_GPU_ALWAYS  = 4,
+//    GxB_GPU_NEVER   = 5,
+//
+//    // for GxB_AxB_METHOD only:
+//    GxB_AxB_GUSTAVSON = 1001,   // gather-scatter saxpy method
+//    GxB_AxB_DOT       = 1003,   // dot product
+//    GxB_AxB_HASH      = 1004,   // hash-based saxpy method
+//    GxB_AxB_SAXPY     = 1005    // saxpy method (any kind)
+//}
+//GrB_Desc_Value ;
 

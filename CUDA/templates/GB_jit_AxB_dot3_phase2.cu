@@ -128,7 +128,7 @@ T block_ReduceSum(thread_block g, T val)
 // GB_AxB_cuda_dot3_phase1 kernel, with the same # of threads and threadblocks.
 
 __global__ 
-void GB_AxB_dot3_phase2
+void AxB_phase2
 (
     // input, not modified:
     int64_t *__restrict__ nanobuckets,    // array of size 12-blockDim.x-by-nblocks

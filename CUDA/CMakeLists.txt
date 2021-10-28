@@ -9,7 +9,7 @@ project(GRAPHBLAS_CUDA VERSION 0.1 LANGUAGES CXX CUDA)
 
 set(CMAKE_CUDA_FLAGS "-cudart static")
 set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 set(CMAKE_C_STANDARD 99)
 
 message(STATUS "${CMAKE_CXX_FLAGS}")
@@ -20,6 +20,9 @@ add_library(graphblascuda SHARED
         ${GRAPHBLAS_CUDA_SOURCES}
 )
 
+set(RMM_WRAP_INCLUDES "../rmm_wrap")
+
+message(STATUS "RMM_WRAP_INCLUDES: ${RMM_WRAP_INCLUDES}")
 set(GRAPHBLAS_CUDA_INCLUDES
         ${RMM_WRAP_INCLUDES}
         ../Source
@@ -127,6 +130,7 @@ gtest_discover_tests(graphblascuda_test)
 add_dependencies(graphblascuda_test graphblas)
 add_dependencies(graphblascuda_test graphblascuda)
 add_dependencies(graphblascuda_test gtest_main)
+add_dependencies(graphblascuda_test rmm_wrap)
 
 target_link_libraries(graphblascuda_test
         graphblascuda

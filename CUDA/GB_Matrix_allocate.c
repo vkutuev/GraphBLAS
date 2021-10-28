@@ -2,6 +2,7 @@
 // GB_Matrix_allocate: allocate space for GrB_Matrix, GrB_Vector, or GrB_Scalar
 //------------------------------------------------------------------------------
 
+#include <assert.h>
 #include "GB_Matrix_allocate.h"
 
 // SuiteSparse:GraphBLAS, Timothy A. Davis, (c) 2017-2021, All Rights Reserved.
@@ -22,11 +23,11 @@
 GxB_Scalar /* FIXME for master: GrB_Scalar*/ GB_Scalar_allocate
 (   
     GrB_Type type,
-    int sparsity,   // GxB_FULL, GxB_BITMAP, or GxB_SPARSE
+    int sparsity   // GxB_FULL, GxB_BITMAP, or GxB_SPARSE
 )
 {
     assert (sparsity != GxB_HYPERSPARSE) ;
-    GxB_Scalar s = (GxB_Scalar) GB_Matrix_allocate (type, 1, 1, sparsity, 
+    GxB_Scalar s = (GxB_Scalar) GB_matrix_allocate (type, 1, 1, sparsity,
         true, false, 1, 1) ;
     return (s) ;
 }
@@ -54,7 +55,7 @@ GrB_Vector GB_Vector_allocate
 )
 {
     assert (sparsity != GxB_HYPERSPARSE) ;
-    GrB_Vector v = (GrB_Vector) GB_Matrix_allocate (type, 1, length, sparsity, 
+    GrB_Vector v = (GrB_Vector) GB_matrix_allocate (type, 1, length, sparsity,
         true, iso, anz, 1) ;
     return (v) ;
 }
@@ -63,18 +64,17 @@ GrB_Vector GB_Vector_allocate
 // GB_Matrix_allocate
 //------------------------------------------------------------------------------
 
-GrB_Matrix GB_Matrix_allocate
-(   
-    GrB_Type type,
-    int64_t nrows,
-    int64_t ncols,
-    int sparsity,   //GxB_FULL, ..
-    bool is_csc,
-    bool iso,
-    int64_t anz,    // ignored if sparsity is GxB_FULL or GxB_BITMAP
-    int64_t nvec    // hypersparse only
-)
-{
+GrB_Matrix GB_matrix_allocate
+(
+        GrB_Type type,
+        int64_t nrows,
+        int64_t ncols,
+        int sparsity,   //GxB_FULL, ..
+        bool is_csc,
+        bool iso,
+        int64_t anz,    // ignored if sparsity is GxB_FULL or GxB_BITMAP
+        int64_t nvec    // hypersparse only
+) {
 
 //------------------------------------------------------------------------------
 // basic information: magic, error logger, and type
@@ -83,29 +83,29 @@ GrB_Matrix GB_Matrix_allocate
 // The first four items exactly match the first four items in the
 // GrB_Descriptor struct.
 
-    GrB_Matrix A = rmm_malloc (sizeof (struct GB_Matrix_opaque)) ;
+    GrB_Matrix A = rmm_wrap_malloc(sizeof(struct GB_Matrix_opaque));
 
 // int64_t magic ;         // for detecting uninitialized objects
 
-    A->magic = GB_MAGIC ;                 // object is valid
+    A->magic = GB_MAGIC;                 // object is valid
 
 // size_t header_size ;    // size of the malloc'd block for this struct, or 0
 
-    A->header_size = sizeof (struct GB_Matrix_opaque) ;  // or more
+    A->header_size = sizeof(struct GB_Matrix_opaque);  // or more
 
 // char *logger ;          // error logger string
 
-    A->logger = NULL ;
+    A->logger = NULL;
 
 // size_t logger_size ;    // size of the malloc'd block for logger, or 0
 
-    A->logger_size = 0 ;
+    A->logger_size = 0;
 
 // The remaining items are specific the GrB_Matrix, GrB_Vector and GxB_Scalar
 // structs, and do not appear in the GrB_Descriptor struct:
 // GrB_Type type ;         // the type of each numerical entry
 
-    A->type = type ; // GrB_FP32 etc
+    A->type = type; // GrB_FP32 etc
 
 //------------------------------------------------------------------------------
 // compressed sparse vector data structure
@@ -136,69 +136,61 @@ GrB_Matrix GB_Matrix_allocate
 // The 8 formats:  (hypersparse, sparse, bitmap, full) x (CSR or CSC)
 //------------------------------------------------------------------------------
 
-    A->is_csc = is_csc ; // true: CSC, false: CSR
+    A->is_csc = is_csc; // true: CSC, false: CSR
 
-    A->iso = iso ; // true: A->x holds just one entry, false: normal case
+    //TODO: This should be enabled in master branch
+//    A->iso = iso; // true: A->x holds just one entry, false: normal case
 
     // set the vector dimension and length
-    if (is_csc)
-    { 
-        A->vlen = nrows ;
-        A->vdim = ncols ;
-    }
-    else
-    { 
-        A->vlen = ncols ;
-        A->vdim = nrows ;
+    if (is_csc) {
+        A->vlen = nrows;
+        A->vdim = ncols;
+    } else {
+        A->vlen = ncols;
+        A->vdim = nrows;
     }
 
-    if (sparsity == GxB_FULL || sparsity == GxB_BITMAP)
-    {
-        anz = nrows * ncols ;
+    if (sparsity == GxB_FULL || sparsity == GxB_BITMAP) {
+        anz = nrows * ncols;
     }
 
 // create phbix:  A->[p,h,b,i,x]
 
-    A->p_size = 0 ;
-    A->h_size = 0 ;
-    A->b_size = 0 ;
-    A->i_size = 0 ;
-    A->x_size = 0 ;
+    A->p_size = 0;
+    A->h_size = 0;
+    A->b_size = 0;
+    A->i_size = 0;
+    A->x_size = 0;
 
-    A->p = NULL ;
-    A->h = NULL ;
-    A->b = NULL ;
-    A->i = NULL ;
-    A->x = NULL ;
+    A->p = NULL;
+    A->h = NULL;
+    A->b = NULL;
+    A->i = NULL;
+    A->x = NULL;
 
     // for all matrices:
 
-    if (iso)
-    {
+    if (iso) {
         // DIE if cuda_merge_in_progress
         // OK for master
-        A->x_size = type->size ;
+        A->x_size = type->size;
+    } else {
+        A->x_size = anz * type->size;
     }
-    else
-    {
-        A->x_size = anz * type->size ;
-    }
-    A->x = rmm_malloc (A->x_size) ;
+    A->x = rmm_wrap_malloc(A->x_size);
 
-    A->nzmax = anz ;            // TO REMOVE in master
-    A->nvals = 0 ;              // for bitmapped matrices only
-    A->nzombies = 0 ;
-    A->jumbled = false ;
-    A->Pending = NULL ;
-    A->nvec_nonempty = -1 ;
-    A->hyper_switch = 0.0625 ;
-    A->bitmap_switch = 0.10 ;
-    A->sparsity/*_control*/ = sparsity ;   // TO RENAME in master
+    A->nzmax = anz;            // TO REMOVE in master
+    A->nvals = 0;              // for bitmapped matrices only
+    A->nzombies = 0;
+    A->jumbled = false;
+    A->Pending = NULL;
+    A->nvec_nonempty = -1;
+    A->hyper_switch = 0.0625;
+    A->bitmap_switch = 0.10;
+    A->sparsity/*_control*/ = sparsity;   // TO RENAME in master
 
-    switch (sparsity)
-    {
-        case GxB_FULL:
-        {
+    switch (sparsity) {
+        case GxB_FULL: {
 
             // --------------------------------------
             // Full structure:
@@ -207,9 +199,9 @@ GrB_Matrix GB_Matrix_allocate
             // Ah, Ap, Ai, and Ab are all NULL.
             // A->nvec == A->vdim.   A->plen is not needed (set to -1)
 
-            A->plen = -1 ;
-            A->nvec = A->vdim ;
-            A->nvec_nonempty = (A->vlen > 0) ? A->vdim : 0 ;
+            A->plen = -1;
+            A->nvec = A->vdim;
+            A->nvec_nonempty = (A->vlen > 0) ? A->vdim : 0;
 
             // --------------------------------------
             // A->is_csc is true:  full CSC format
@@ -229,10 +221,9 @@ GrB_Matrix GB_Matrix_allocate
             // Row A(i,:) is held in Ax [p1:p2-1] where p1 = k*n, p2 = (k+1)*n.
             // A(i,j) at position p has column index j = p%n and value Ax [p]
         }
-        break ;
+            break;
 
-        case GxB_BITMAP:
-        {
+        case GxB_BITMAP: {
 
             // --------------------------------------
             // Bitmap structure:
@@ -241,11 +232,11 @@ GrB_Matrix GB_Matrix_allocate
             // Ah, Ap, and Ai are NULL.  Ab is an int8_t array of size m*n.
             // A->nvec == A->vdim.   A->plen is not needed (set to -1)
 
-            A->plen = -1 ;
-            A->nvec = A->vdim ;
-            A->nvec_nonempty = (A->vlen > 0) ? A->vdim : 0 ;
-            A->b_size = anz * sizeof (bool) ;
-            A->b = rmm_malloc (A->b_size) ;
+            A->plen = -1;
+            A->nvec = A->vdim;
+            A->nvec_nonempty = (A->vlen > 0) ? A->vdim : 0;
+            A->b_size = anz * sizeof(bool);
+            A->b = rmm_wrap_malloc(A->b_size);
 
             // The bitmap structure is identical to the full structure, except for the
             // addition of the bitmap array A->b.
@@ -254,28 +245,27 @@ GrB_Matrix GB_Matrix_allocate
             // A->is_csc is true:  bitmap CSC format
             // --------------------------------------
 
-                // A is m-by-n: where A->vdim = n, and A->vlen = m
+            // A is m-by-n: where A->vdim = n, and A->vlen = m
 
-                // Column A(:,j) is held in Ax [p1:p2-1] where p1 = k*m, p2 = (k+1)*m.
-                // A(i,j) at position p has row index i = p%m and value Ax [p].
-                // The entry A(i,j) is present if Ab [p] == 1, and not present if
-                // Ab [p] == 0.
+            // Column A(:,j) is held in Ax [p1:p2-1] where p1 = k*m, p2 = (k+1)*m.
+            // A(i,j) at position p has row index i = p%m and value Ax [p].
+            // The entry A(i,j) is present if Ab [p] == 1, and not present if
+            // Ab [p] == 0.
 
             // --------------------------------------
             // A->is_csc is false:  bitmap CSR format
             // --------------------------------------
 
-                // A is m-by-n: where A->vdim = m, and A->vlen = n
+            // A is m-by-n: where A->vdim = m, and A->vlen = n
 
-                // Row A(i,:) is held in Ax [p1:p2-1] where p1 = k*n, p2 = (k+1)*n.
-                // A(i,j) at position p has column index j = p%n and value Ax [p]
-                // The entry A(i,j) is present if Ab [p] == 1, and not present if
-                // Ab [p] == 0.
+            // Row A(i,:) is held in Ax [p1:p2-1] where p1 = k*n, p2 = (k+1)*n.
+            // A(i,j) at position p has column index j = p%n and value Ax [p]
+            // The entry A(i,j) is present if Ab [p] == 1, and not present if
+            // Ab [p] == 0.
         }
-        break ;
+            break;
 
-        case GxB_SPARSE:
-        {
+        case GxB_SPARSE: {
 
             // --------------------------------------
             // Sparse structure:
@@ -284,43 +274,42 @@ GrB_Matrix GB_Matrix_allocate
             // Ah and Ab are NULL
             // A->nvec == A->plen == A->vdim
 
-            A->plen = A->vdim ;       // size of A->p is plen+1
-            A->nvec = A->plen ;
-            A->p_size = (A->plen+1) * sizeof (int64_t) ;
-            A->i_size = anz * sizeof (int64_t) ;
-            A->p = rmm_malloc (A->p_size) ;
-            A->i = rmm_malloc (A->i_size) ;
+            A->plen = A->vdim;       // size of A->p is plen+1
+            A->nvec = A->plen;
+            A->p_size = (A->plen + 1) * sizeof(int64_t);
+            A->i_size = anz * sizeof(int64_t);
+            A->p = rmm_wrap_malloc(A->p_size);
+            A->i = rmm_wrap_malloc(A->i_size);
 
             // --------------------------------------
             // A->is_csc is true:  sparse CSC format
             // --------------------------------------
 
-                // Ap, Ai, and Ax store a sparse matrix in the a very similar style
-                // as MATLAB and CSparse, as a collection of sparse column vectors.
+            // Ap, Ai, and Ax store a sparse matrix in the a very similar style
+            // as MATLAB and CSparse, as a collection of sparse column vectors.
 
-                // Column A(:,j) is held in two parts: the row indices are in
-                // Ai [Ap [j]...Ap [j+1]-1], and the numerical values are in the
-                // same positions in Ax.
+            // Column A(:,j) is held in two parts: the row indices are in
+            // Ai [Ap [j]...Ap [j+1]-1], and the numerical values are in the
+            // same positions in Ax.
 
-                // A is m-by-n: where A->vdim = n, and A->vlen = m
+            // A is m-by-n: where A->vdim = n, and A->vlen = m
 
             // --------------------------------------
             // A->is_csc is false:  sparse CSR format
             // --------------------------------------
 
-                // Ap, Ai, and Ax store a sparse matrix in CSR format, as a collection
-                // of sparse row vectors.
+            // Ap, Ai, and Ax store a sparse matrix in CSR format, as a collection
+            // of sparse row vectors.
 
-                // Row A(i,:) is held in two parts: the column indices are in
-                // Ai [Ap [i]...Ap [i+1]-1], and the numerical values are in the
-                // same positions in Ax.
+            // Row A(i,:) is held in two parts: the column indices are in
+            // Ai [Ap [i]...Ap [i+1]-1], and the numerical values are in the
+            // same positions in Ax.
 
-                // A is m-by-n: where A->vdim = m, and A->vlen = n
+            // A is m-by-n: where A->vdim = m, and A->vlen = n
         }
-        break ;
+            break;
 
-        case GxB_HYPERSPARSE:
-        {
+        case GxB_HYPERSPARSE: {
             // --------------------------------------
             // Hypersparse structure:
             // --------------------------------------
@@ -329,51 +318,51 @@ GrB_Matrix GB_Matrix_allocate
             // Ah is non-NULL and has size A->plen; it is always kept sorted,
             // A->nvec <= A->plen <= A->vdim
 
-            A->plen = nvec ;     // size of A->p is plen+1
-            A->nvec = nvec ;
-            A->p_size = (A->plen+1) * sizeof (int64_t) ;
-            A->h_size = (A->plen  ) * sizeof (int64_t) ;
-            A->i_size = anz * sizeof (int64_t) ;
-            A->p = rmm_malloc (A->p_size) ;
-            A->h = rmm_malloc (A->h_size) ;
-            A->i = rmm_malloc (A->i_size) ;
+            A->plen = nvec;     // size of A->p is plen+1
+            A->nvec = nvec;
+            A->p_size = (A->plen + 1) * sizeof(int64_t);
+            A->h_size = (A->plen) * sizeof(int64_t);
+            A->i_size = anz * sizeof(int64_t);
+            A->p = rmm_wrap_malloc(A->p_size);
+            A->h = rmm_wrap_malloc(A->h_size);
+            A->i = rmm_wrap_malloc(A->i_size);
 
             // --------------------------------------
             // A->is_csc is true: hypersparse CSC format
             // --------------------------------------
 
-                // A is held as a set of A->nvec sparse column vectors, but not all
-                // columns 0 to n-1 are present.
+            // A is held as a set of A->nvec sparse column vectors, but not all
+            // columns 0 to n-1 are present.
 
-                // If column A(:,j) has any entries, then j = Ah [k] for some
-                // k in the range 0 to A->nvec-1.
+            // If column A(:,j) has any entries, then j = Ah [k] for some
+            // k in the range 0 to A->nvec-1.
 
-                // Column A(:,j) is held in two parts: the row indices are in Ai [Ap
-                // [k]...Ap [k+1]-1], and the numerical values are in the same
-                // positions in Ax.
+            // Column A(:,j) is held in two parts: the row indices are in Ai [Ap
+            // [k]...Ap [k+1]-1], and the numerical values are in the same
+            // positions in Ax.
 
-                // A is m-by-n: where A->vdim = n, and A->vlen = m
+            // A is m-by-n: where A->vdim = n, and A->vlen = m
 
             // --------------------------------------
             // A->is_csc is false: hypersparse CSR format
             // --------------------------------------
 
-                // A is held as a set of A->nvec sparse row vectors, but not all
-                // row 0 to m-1 are present.
+            // A is held as a set of A->nvec sparse row vectors, but not all
+            // row 0 to m-1 are present.
 
-                // If row A(i,:) has any entries, then i = Ah [k] for some
-                // k in the range 0 to A->nvec-1.
+            // If row A(i,:) has any entries, then i = Ah [k] for some
+            // k in the range 0 to A->nvec-1.
 
-                // Row A(i,:) is held in two parts: the column indices are in Ai
-                // [Ap [k]...Ap [k+1]-1], and the numerical values are in the same
-                // positions in Ax.
+            // Row A(i,:) is held in two parts: the column indices are in Ai
+            // [Ap [k]...Ap [k+1]-1], and the numerical values are in the same
+            // positions in Ax.
 
-                // A is m-by-n: where A->vdim = n, and A->vlen = m
+            // A is m-by-n: where A->vdim = n, and A->vlen = m
 
         }
-        break ;
+            break;
 
-        default: ;
+        default:;
     }
 
 //------------------------------------------------------------------------------

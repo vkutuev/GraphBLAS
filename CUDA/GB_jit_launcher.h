@@ -133,7 +133,7 @@ class launcher {
    * @return Return GDF_SUCCESS if successful
    */
   template <typename ... Args>
-  void launch(Args ... args){
+  void launch(Args ... args) {
     get_kernel().configure_1d_max_occupancy(32, 0, 0, stream).launch(args...);
   }
 

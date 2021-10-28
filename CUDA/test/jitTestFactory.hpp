@@ -116,7 +116,7 @@ bool test_AxB_phase1_factory( int TB, int64_t N, int64_t Anz, int64_t Bnz) {
     #define NBUCKETS 12 + 1 // TODO: This should be set in GB_buckets
     #define chunksize 128
 
-    const int64_t mnz = GB_NNZ (M) ;
+    const int64_t mnz = GB_NNZ (M->mat) ;
 
     int number_of_sms = GB_Global_gpu_sm_get (0) ;
 

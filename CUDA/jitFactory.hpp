@@ -181,8 +181,7 @@ public:
       std::string hashable_name = base_name + "_" + kernel_name;
       std::stringstream string_to_be_jitted ;
       string_to_be_jitted <<
-      kernel_name << R"("
-      #include )" << hashable_name << R"(".cu")";
+      hashable_name << std::endl << R"(#include ")" << hashable_name << R"(.cu")";
 
       // dump it:
       std::cout << string_to_be_jitted.str();
@@ -192,7 +191,7 @@ public:
                      header_names, 
                      compiler_flags,
                      file_callback)
-                   .set_kernel_inst( hashable_name, {})
+                   .set_kernel_inst( kernel_name, {})
                    .configure(grid, block)
                    .launch( nanobuckets, blockBucket, bucketp, bucket, C->mat, cnz);
 
@@ -232,9 +231,8 @@ public:
       std::string hashable_name = base_name + "_" + kernel_name + "_" + op_name;
 
       std::stringstream string_to_be_jitted ;
-      string_to_be_jitted <<
-      kernel_name << R"("
-      #include )" << hashable_name << R"(".cu")";
+      string_to_be_jitted << "\n" <<
+      kernel_name << R"("#include )" << hashable_name << R"(".cu")";
 
       // dump it:
       std::cout << string_to_be_jitted.str();
