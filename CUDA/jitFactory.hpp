@@ -49,7 +49,7 @@
 
 #include "test/dataFactory.hpp"
 #include "test/semiringFactory.hpp"
-#include "GB_cuda.h"
+// #include "GB_cuda.h"
 
 
 #if __cplusplus >= 201103L
@@ -86,7 +86,7 @@ const std::vector<std::string> compiler_flags{
    "-D__CUDACC_RTC__",
    "-I.",
    "-I..",
-   "-I../../Include",
+// "-I../../Include",
    "-I../../Source",
    "-I../../Source/Template",
    "-I../local_cub/block",

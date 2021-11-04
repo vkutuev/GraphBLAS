@@ -22,13 +22,14 @@
 
 GxB_Scalar /* FIXME for master: GrB_Scalar*/ GB_Scalar_allocate
 (   
-    GrB_Type type,
+    GrB_Type type,          // NULL on the GPU
+    size_t type_size,       // type->size
     int sparsity   // GxB_FULL, GxB_BITMAP, or GxB_SPARSE
 )
 {
     assert (sparsity != GxB_HYPERSPARSE) ;
-    GxB_Scalar s = (GxB_Scalar) GB_matrix_allocate (type, 1, 1, sparsity,
-        true, false, 1, 1) ;
+    GxB_Scalar s = (GxB_Scalar) GB_matrix_allocate (type, type_size,
+        1, 1, sparsity, true, false, 1, 1) ;
     return (s) ;
 }
 
@@ -47,7 +48,8 @@ GxB_Scalar /* FIXME for master: GrB_Scalar*/ GB_Scalar_allocate
 
 GrB_Vector GB_Vector_allocate
 (   
-    GrB_Type type,
+    GrB_Type type,          // NULL on the GPU
+    size_t type_size,       // type->size
     int64_t length,
     int sparsity,   // GxB_FULL, GxB_BITMAP, or GxB_SPARSE
     bool iso,
@@ -55,8 +57,8 @@ GrB_Vector GB_Vector_allocate
 )
 {
     assert (sparsity != GxB_HYPERSPARSE) ;
-    GrB_Vector v = (GrB_Vector) GB_matrix_allocate (type, 1, length, sparsity,
-        true, iso, anz, 1) ;
+    GrB_Vector v = (GrB_Vector) GB_matrix_allocate (type, type_size,
+        1, length, sparsity, true, iso, anz, 1) ;
     return (v) ;
 }
 
@@ -66,7 +68,8 @@ GrB_Vector GB_Vector_allocate
 
 GrB_Matrix GB_matrix_allocate
 (
-        GrB_Type type,
+        GrB_Type type,          // NULL on the GPU
+        size_t type_size,       // type->size
         int64_t nrows,
         int64_t ncols,
         int sparsity,   //GxB_FULL, ..
@@ -173,9 +176,9 @@ GrB_Matrix GB_matrix_allocate
     if (iso) {
         // DIE if cuda_merge_in_progress
         // OK for master
-        A->x_size = type->size;
+        A->x_size = type_size;
     } else {
-        A->x_size = anz * type->size;
+        A->x_size = anz * type_size;
     }
     A->x = rmm_wrap_malloc(A->x_size);
 

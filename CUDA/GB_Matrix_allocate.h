@@ -10,7 +10,8 @@ extern "C" {
 
 GrB_Matrix GB_matrix_allocate
         (
-                GrB_Type type,
+                GrB_Type type,          // NULL on the GPU
+                size_t type_size,       // type->size
                 int64_t nrows,
                 int64_t ncols,
                 int sparsity,   //GxB_FULL, ..
@@ -22,7 +23,8 @@ GrB_Matrix GB_matrix_allocate
 
 GrB_Vector GB_Vector_allocate
         (
-                GrB_Type type,
+                GrB_Type type,          // NULL on the GPU
+                size_t type_size,       // type->size
                 int64_t length,
                 int sparsity,   // GxB_FULL, GxB_BITMAP, or GxB_SPARSE
                 bool iso,
@@ -31,7 +33,8 @@ GrB_Vector GB_Vector_allocate
 
 GxB_Scalar /* FIXME for master: GrB_Scalar*/ GB_Scalar_allocate
         (
-                GrB_Type type,
+                GrB_Type type,          // NULL on the GPU
+                size_t type_size,       // type->size
                 int sparsity   // GxB_FULL, GxB_BITMAP, or GxB_SPARSE
         );
 

@@ -6,7 +6,7 @@
 #include <cstdint>
 #include <random>
 
-#include "GraphBLAS.h"
+// #include "GraphBLAS.h"
 #include "../GB_Matrix_allocate.h"
 
 static const char *_cudaGetErrorEnum(cudaError_t error) {
@@ -137,7 +137,10 @@ class matrix : public Managed {
      }
 
      void alloc( int64_t N, int64_t Nz) {
-         mat = GB_matrix_allocate(GrB_FP32, N, N, 2, false, false, Nz, -1);
+         // allocate a GrB_FP32 matrix (but the A->type is NULL;
+         // the GPU kernel cannot access it anyway since GrB_FP32
+         // is a pointer to a global, statically declared struct on the CPU.
+         mat = GB_matrix_allocate(NULL, sizeof(float), N, N, 2, false, false, Nz, -1);
      }
  
      void fill_random(  int64_t N, int64_t Nz, std::mt19937 r) {

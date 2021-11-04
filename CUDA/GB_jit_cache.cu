@@ -23,7 +23,7 @@
 #include <sys/types.h>
 
 #include "GB_jit_cache.h"
-#include "GraphBLAS.h"
+// #include "GraphBLAS.h"
 // in GraphBLAS.h
 // #define GxB_IMPLEMENTATION_MAJOR 5
 // #define GxB_IMPLEMENTATION_MINOR 0

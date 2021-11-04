@@ -1,6 +1,7 @@
 //SPDX-License-Identifier: Apache-2.0
 
 #pragma once
+#undef  ASSERT
 #define ASSERT(x)
 
 //------------------------------------------------------------------------------
@@ -33,20 +34,21 @@
 
 //------------------------------------------------------------------------------
 
-#include "GraphBLAS.h"
+#ifndef GRAPHBLAS_H
+#define GRAPHBLAS_H
 
-#include "GB_imin.h"
-#include "GB_zombie.h"
-#include "GB_opaque.h"
-#include "GB_nnz.h"
-#include "GB_partition.h"
-#include "GB_binary_search.h"
-#include "GB_search_for_vector_template.c"
+// #include "GraphBLAS.h"
+
+#include <stdint.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <string.h>
 
 //------------------------------------------------------------------------------
 // remainder of this file is extracted from GraphBLAS.h:
 //------------------------------------------------------------------------------
 
+typedef uint64_t GrB_Index ;
 typedef struct GB_Descriptor_opaque *GrB_Descriptor ;
 typedef struct GB_Type_opaque *GrB_Type ;
 typedef struct GB_UnaryOp_opaque *GrB_UnaryOp ;
@@ -64,33 +66,52 @@ typedef struct GB_Matrix_opaque *GrB_Matrix ;
 #define GxB_BITMAP      4   // store matrix as a bitmap
 #define GxB_FULL        8   // store matrix as full; all entries must be present
 
+typedef void (*GxB_unary_function)  (void *, const void *) ;
 typedef void (*GxB_binary_function) (void *, const void *, const void *) ;
 
-//typedef enum
-//{
-//    // for all GrB_Descriptor fields:
-//    GxB_DEFAULT = 0,    // default behavior of the method
-//
-//    // for GrB_OUTP only:
-//    GrB_REPLACE = 1,    // clear the output before assigning new values to it
-//
-//    // for GrB_MASK only:
-//    GrB_COMP = 2,       // use the structural complement of the input
-//    GrB_SCMP = 2,       // same as GrB_COMP (deprecated; use GrB_COMP instead)
-//    GrB_STRUCTURE = 4,  // use the only pattern of the mask, not its values
-//
-//    // for GrB_INP0 and GrB_INP1 only:
-//    GrB_TRAN = 3,       // use the transpose of the input
-//
-//    // for GxB_GPU_CONTROL only:
-//    GxB_GPU_ALWAYS  = 4,
-//    GxB_GPU_NEVER   = 5,
-//
-//    // for GxB_AxB_METHOD only:
-//    GxB_AxB_GUSTAVSON = 1001,   // gather-scatter saxpy method
-//    GxB_AxB_DOT       = 1003,   // dot product
-//    GxB_AxB_HASH      = 1004,   // hash-based saxpy method
-//    GxB_AxB_SAXPY     = 1005    // saxpy method (any kind)
-//}
-//GrB_Desc_Value ;
+typedef bool (*GxB_select_function)      // return true if A(i,j) is kept
+(
+    GrB_Index i,                // row index of A(i,j)
+    GrB_Index j,                // column index of A(i,j)
+    const void *x,              // value of A(i,j)
+    const void *thunk           // optional input for select function
+) ;
+
+typedef enum
+{
+    // for all GrB_Descriptor fields:
+    GxB_DEFAULT = 0,    // default behavior of the method
+
+    // for GrB_OUTP only:
+    GrB_REPLACE = 1,    // clear the output before assigning new values to it
+
+    // for GrB_MASK only:
+    GrB_COMP = 2,       // use the structural complement of the input
+    GrB_SCMP = 2,       // same as GrB_COMP (historical; use GrB_COMP instead)
+    GrB_STRUCTURE = 4,  // use the only pattern of the mask, not its values
+
+    // for GrB_INP0 and GrB_INP1 only:
+    GrB_TRAN = 3,       // use the transpose of the input
+
+    // for GxB_GPU_CONTROL only (DRAFT: in progress, do not use)
+    GxB_GPU_ALWAYS  = 2001,
+    GxB_GPU_NEVER   = 2002,
+
+    // for GxB_AxB_METHOD only:
+    GxB_AxB_GUSTAVSON = 1001,   // gather-scatter saxpy method
+    GxB_AxB_DOT       = 1003,   // dot product
+    GxB_AxB_HASH      = 1004,   // hash-based saxpy method
+    GxB_AxB_SAXPY     = 1005    // saxpy method (any kind)
+}
+GrB_Desc_Value ;
+
+#include "GB_opaque.h"
+#endif
+
+#include "GB_imin.h"
+#include "GB_zombie.h"
+#include "GB_nnz.h"
+#include "GB_partition.h"
+#include "GB_binary_search.h"
+#include "GB_search_for_vector_template.c"
 
