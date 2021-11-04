@@ -206,7 +206,7 @@ __device__ static inline GB_bucket_code GB_bucket_assignment
 // zombie assignment or bucket assignment for non-zombies in C.
 
 template<typename Type_M> 
-__global__ void GB_AxB_cuda_phase1
+__global__ void AxB_phase1
 (
     // outputs, preallocated in global memory:
     int64_t *nanobuckets,       // array of size 12-blockDim.x-by-gridDim.x
