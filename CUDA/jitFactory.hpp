@@ -146,7 +146,7 @@ public:
                      header_names, 
                      compiler_flags,
                      file_callback)
-                   .set_kernel_inst(  hashable_name,
+                   .set_kernel_inst(  kernel_name,
                                     { GET_TYPE_NAME(dumC),
                                       GET_TYPE_NAME(dumM),
                                       GET_TYPE_NAME(dumA),
