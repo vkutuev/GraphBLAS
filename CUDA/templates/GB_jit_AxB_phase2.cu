@@ -5,7 +5,9 @@
 // TODO describe me
 
 #define GB_KERNEL
-#include <cstdint>
+
+
+//#include <cstdint>
 #include "GB_cuda_buckets.h"
 #include "matrix.h"
 #include <cooperative_groups.h>
@@ -127,19 +129,19 @@ T block_ReduceSum(thread_block g, T val)
 // GB_AxB_cuda_dot3_phase1.  The launch geometry of this kernel must match the
 // GB_AxB_cuda_dot3_phase1 kernel, with the same # of threads and threadblocks.
 
-__global__ 
+__global__
 void AxB_phase2
 (
     // input, not modified:
     int64_t *__restrict__ nanobuckets,    // array of size 12-blockDim.x-by-nblocks
     int64_t *__restrict__ blockbucket,    // global bucket count, of size 12*nblocks
     // output:
-    int64_t *__restrict__ bucketp,        // global bucket cumsum, of size 13 
+    int64_t *__restrict__ bucketp,        // global bucket cumsum, of size 13
     int64_t *__restrict__ bucket,         // global buckets, of size cnz (== mnz)
     int64_t *__restrict__ offset,         // global offsets, for each bucket
     // inputs, not modified:
     GrB_Matrix C,             // output matrix
-    const int64_t cnz,        // number of entries in C and M 
+    const int64_t cnz,        // number of entries in C and M
     const int nblocks         // input number of blocks to reduce
 )
 {
@@ -430,7 +432,6 @@ void GB_AxB_dot3_phase2end
         
     }
     //__syncthreads();
-  } 
-    
+  }
 }
 

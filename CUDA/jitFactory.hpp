@@ -89,8 +89,8 @@ const std::vector<std::string> compiler_flags{
    "-I../../Include",
    "-I../../Source",
    "-I../../Source/Template",
-   "-Ilocal_cub/block",
-   "-Itemplates",
+   "-I../local_cub/block",
+   "-I../templates",
    "-I/usr/local/cuda/include"
 };
 
@@ -181,7 +181,7 @@ public:
       std::string hashable_name = base_name + "_" + kernel_name;
       std::stringstream string_to_be_jitted ;
       string_to_be_jitted <<
-      hashable_name << std::endl << R"(#include ")" << hashable_name << R"(.cu")";
+      hashable_name << std::endl << R"(#include ")" << hashable_name << R"(.cu")" << std::endl;
 
       // dump it:
       std::cout << string_to_be_jitted.str();
@@ -232,7 +232,7 @@ public:
 
       std::stringstream string_to_be_jitted ;
       string_to_be_jitted << "\n" <<
-      kernel_name << R"("#include )" << hashable_name << R"(".cu")";
+      kernel_name << R"("#include )" << hashable_name << R"(".cuh")";
 
       // dump it:
       std::cout << string_to_be_jitted.str();
@@ -300,7 +300,7 @@ public:
       std::stringstream string_to_be_jitted ;
       string_to_be_jitted <<
       kernel_name << R"("
-      #include )" << hashable_name << R"(".cu")";
+      #include )" << hashable_name << R"(".cuh")";
 
       // dump it:
       std::cout << string_to_be_jitted.str();

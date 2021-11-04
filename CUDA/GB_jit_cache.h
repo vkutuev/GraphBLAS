@@ -279,7 +279,10 @@ private:
             if (not successful_read) {
                 // JIT compile and write to file if possible
                     std::cout << "compiling now" << std::endl;
-                serialized = func().serialize();
+                auto f = func();
+
+                    std::cout << "completed func()" << std::endl;
+                serialized = f.serialize();
                 std::cout<<" compiled serialized prog "<<name<<std::endl;
 
                 #if defined(JITIFY_USE_CACHE)

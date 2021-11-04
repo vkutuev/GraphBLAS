@@ -119,7 +119,7 @@ named_prog<jitify::experimental::Program> GBJitCache::getProgram(
 {
     // Lock for thread safety
     std::lock_guard<std::mutex> lock(_program_cache_mutex);
-    //printf(" jit_cache get program %s\n", prog_name.c_str());
+    printf(" jit_cache get program %s\n", prog_name.c_str());
 
     return getCached(prog_name, program_map, 
         [&](){
@@ -146,7 +146,7 @@ named_prog<jitify::experimental::KernelInstantiation> GBJitCache::getKernelInsta
     std::string kern_inst_name = prog_name + '.' + kern_name;
     for ( auto&& arg : arguments ) kern_inst_name += '_' + arg;
 
-    //printf(" got kernel instance %s\n",kern_inst_name.c_str());
+    printf(" got kernel instance %s\n",kern_inst_name.c_str());
 
     return getCached(kern_inst_name, kernel_inst_map, 
         [&](){return program.kernel(kern_name)
