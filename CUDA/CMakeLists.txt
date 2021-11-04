@@ -32,7 +32,6 @@ set(GRAPHBLAS_CUDA_INCLUDES
 
 message(STATUS "${GRAPHBLAS_CUDA_INCLUDES}")
 
-
 target_include_directories(graphblascuda PUBLIC  ${CUDA_INCLUDE_DIRECTORIES} ${GRAPHBLAS_CUDA_INCLUDES})
 set_target_properties(graphblascuda PROPERTIES POSITION_INDEPENDENT_CODE ON)
 set_target_properties(graphblascuda PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
@@ -79,7 +78,7 @@ foreach(var ${CUDA_TEST_SUITES})
                     ${CMAKE_CURRENT_BINARY_DIR}/${var}_${semiring}_${kernel}_cuda_tests.cu
                     DEPENDS
                     jitFactory.hpp
-                    COMMAND python ${CMAKE_CURRENT_SOURCE_DIR}/test/testGen_cmake.py "\"${CMAKE_CURRENT_SOURCE_DIR}\"" "\"${var}\"" "\"${CUDA_TEST_MONOIDS}\""
+                    COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/test/testGen_cmake.py "\"${CMAKE_CURRENT_SOURCE_DIR}\"" "\"${var}\"" "\"${CUDA_TEST_MONOIDS}\""
                         "\"${CUDA_TEST_BINOPS}\"" "\"${semiring}\"" "\"${CUDA_TEST_DATATYPES}\""
                         "\"${kernel}\""
             )
@@ -94,7 +93,7 @@ include(FetchContent)
 FetchContent_Declare(
         googletest
         # Specify the commit you depend on and update it regularly.
-        URL https://github.com/google/googletest/archive/609281088cfefc76f9d0ce82e1ff6c30cc3591e5.zip
+        URL https://github.com/google/googletest/archive/e2239ee6043f73722e7aa812a459f54a28552929.zip
 )
 # For Windows: Prevent overriding the parent project's compiler/linker settings
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
@@ -125,7 +124,6 @@ set_target_properties(graphblascuda_test PROPERTIES CUDA_SEPARABLE_COMPILATION O
 set_target_properties(graphblascuda_test PROPERTIES CUDA_ARCHITECTURES "70")
 
 include(GoogleTest)
-gtest_discover_tests(graphblascuda_test)
 
 add_dependencies(graphblascuda_test graphblas)
 add_dependencies(graphblascuda_test graphblascuda)
@@ -144,5 +142,3 @@ target_include_directories(graphblascuda_test PUBLIC
         ${ADDITIONAL_INCLUDES}
         ${CUDA_INCLUDE_DIRECTORIES}
         ${GRAPHBLAS_CUDA_INCLUDES})
-
-add_test(NAME graphblascuda_test_test COMMAND graphblascuda_test)

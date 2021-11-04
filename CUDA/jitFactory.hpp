@@ -121,16 +121,22 @@ public:
       dim3 block(blocksz);
 
       std::string hashable_name = base_name + "_" + kernel_name;
-      std::cout<< kernel_name<<
-                      " with types "<<GET_TYPE_NAME(dumC)<<","
-                                    <<GET_TYPE_NAME(dumM)<<","
-                                    <<GET_TYPE_NAME(dumA)<<","
-                                    <<GET_TYPE_NAME(dumB)<<std::endl;
-
       std::stringstream string_to_be_jitted ;
       string_to_be_jitted <<
-      kernel_name << R"("
-      #include )" << hashable_name << R"(".cu")";
+      hashable_name << std::endl << R"(#include ")" << hashable_name << R"(.cu")" << std::endl;
+
+
+//      std::string hashable_name = base_name + "_" + kernel_name;
+//      std::cout<< kernel_name<<
+//                      " with types "<<GET_TYPE_NAME(dumC)<<","
+//                                    <<GET_TYPE_NAME(dumM)<<","
+//                                    <<GET_TYPE_NAME(dumA)<<","
+//                                    <<GET_TYPE_NAME(dumB)<<std::endl;
+
+//      std::stringstream string_to_be_jitted ;
+//      string_to_be_jitted <<
+//      kernel_name << R"("
+//      #include )" << hashable_name << R"(".cu")";
 
       // dump it:
       std::cout << string_to_be_jitted.str();

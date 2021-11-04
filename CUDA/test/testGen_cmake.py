@@ -7,7 +7,7 @@ def buildTest(ts="TestsuiteName",kern="vsvs", ds= "tiny-tiny", SR = "PLUS_TIMES"
     # build string interpolation from pieces
     Test_name = f"{ds}{SR}C{typeC}M{typeM}A{typeA}B{typeB}X{type_x}Y{type_y}Z{type_z}"
 
-    Test_suite = ts
+    Test_suite = f"{ts}_{phase}"
     #print(Test_suite)
     TEST_HEAD = f"""TEST( {Test_suite}, {Test_name})"""
     #print(TEST_HEAD)
@@ -57,7 +57,7 @@ def write_test_instances_header(test_suite_name, Monoids, Binops, Semirings, Dat
                 for dtA in DataTypes:
                     for dtB in DataTypes:
                         for ds in DataShapes:
-                            for phase in [2]:
+                            for phase in [1,2]:
 
                                 TEST_HEAD, TEST_BODY = buildTest( Test_suite, Kernels, ds, Semirings, phase,
                                                                   dtC, dtM, dtA, dtB, dtX, dtY, dtZ)

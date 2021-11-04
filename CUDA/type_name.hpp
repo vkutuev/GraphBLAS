@@ -22,6 +22,7 @@
 #include <typeinfo>
 #include <type_traits>
 #include <memory>
+#include <cstdint>
 #include <cstdlib>
 
 /**---------------------------------------------------------------------------*
@@ -30,7 +31,8 @@
  *---------------------------------------------------------------------------**/
 namespace jit {
 
-template <typename T> class type_name {
+template <typename T>
+class type_name {
 public:
   static const char *name;
 };
@@ -38,21 +40,21 @@ public:
 #define DECLARE_TYPE_NAME(x)  template<> inline const char *jit::type_name<x>::name = #x;
 #define GET_TYPE_NAME(x) (jit::type_name<decltype(x)>::name)
 
-DECLARE_TYPE_NAME(int);
-DECLARE_TYPE_NAME(int&);
-DECLARE_TYPE_NAME(int*);
+DECLARE_TYPE_NAME(std::int32_t);
+DECLARE_TYPE_NAME(std::int32_t&);
+DECLARE_TYPE_NAME(std::int32_t*);
 DECLARE_TYPE_NAME(int8_t);
 DECLARE_TYPE_NAME(int8_t&);
 DECLARE_TYPE_NAME(int8_t*);
 DECLARE_TYPE_NAME(unsigned char);
 DECLARE_TYPE_NAME(unsigned char&);
 DECLARE_TYPE_NAME(unsigned char*);
-DECLARE_TYPE_NAME(unsigned int);
-DECLARE_TYPE_NAME(unsigned int&);
-DECLARE_TYPE_NAME(unsigned int*);
-DECLARE_TYPE_NAME(unsigned long);
-DECLARE_TYPE_NAME(unsigned long&);
-DECLARE_TYPE_NAME(unsigned long*);
+DECLARE_TYPE_NAME(std::uint32_t);
+DECLARE_TYPE_NAME(std::uint32_t&);
+DECLARE_TYPE_NAME(std::uint32_t*);
+DECLARE_TYPE_NAME(std::uint64_t);
+DECLARE_TYPE_NAME(std::uint64_t&);
+DECLARE_TYPE_NAME(std::uint64_t*);
 DECLARE_TYPE_NAME(long);
 DECLARE_TYPE_NAME(long&);
 DECLARE_TYPE_NAME(long*);
@@ -62,6 +64,7 @@ DECLARE_TYPE_NAME(float*);
 DECLARE_TYPE_NAME(double);
 DECLARE_TYPE_NAME(double&);
 DECLARE_TYPE_NAME(double*);
+DECLARE_TYPE_NAME(bool);
 
 
 
