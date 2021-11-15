@@ -9,7 +9,7 @@
 
 #define GB_KERNEL
 #include <limits>
-#include <cstdint>
+//#include <stdint.h>
 #include "matrix.h"
 #include "GB_cuda_buckets.h"
 #include "local_cub/block/block_scan.cuh"
@@ -229,22 +229,23 @@ __global__ void AxB_phase1
     const int64_t *__restrict__ Mi = M->i ;
     const Type_M *__restrict__ Mx = (Type_M*)M->x ;    // not accessed if M is structural
     const int64_t mnvec = M->nvec ;
+    const int64_t mvlen = M->vlen ;
     const int64_t mnz =  GB_NNZ(M) ;
-    const bool M_is_hyper = M->is_hyper ;
+    const bool M_is_hyper = M->h != NULL ;
 
     const int64_t *__restrict__ Ah = A->h ;
     const int64_t *__restrict__ Ap = A->p ;
     const int64_t *__restrict__ Ai = A->i ;
     const int64_t avlen = A->vlen ;
     const int64_t anz = GB_NNZ(A) ;
-    const bool A_is_hyper = A->is_hyper ;
+    const bool A_is_hyper = A->h != NULL ;
 
     const int64_t *__restrict__ Bh = B->h ;
     const int64_t *__restrict__ Bp = B->p ;
     const int64_t *__restrict__ Bi = B->i ;
     const int64_t bvlen = B->vlen ;
     const int64_t bnz = GB_NNZ(B);
-    const bool B_is_hyper = B->is_hyper ;
+    const bool B_is_hyper = B->h != NULL ;
 
     // int64_t *restrict Cp = C->p ;    // copy of Mp
     // int64_t *restrict Ch = C->h ;    // copy of Mh
@@ -337,12 +338,12 @@ __global__ void AxB_phase1
 
       // find the first vector of the slice for task tid_global: the
       // vector that owns the entry Ai [pfirst] and Ax [pfirst].
-      kfirst = GB_search_for_vector_device (pfirst, Mp, 0, mnvec) -1 ;
+      kfirst = GB_search_for_vector_device (pfirst, Mp, 0, mnvec, mvlen) ;
       //if( pfirst ==0) kfirst = 0;
 
       // find the last vector of the slice for task blockIdx.x: the
       // vector that owns the entry Ai [plast-1] and Ax [plast-1].
-      klast = GB_search_for_vector_device (plast-1, Mp, kfirst, mnvec) ;
+      klast = GB_search_for_vector_device (plast-1, Mp, kfirst, mnvec, mvlen) ;
 
       int k_end = GB_IMIN(  pointerchunk ,  klast - kfirst +2 ) ;
        /* 

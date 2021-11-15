@@ -212,7 +212,7 @@ private:
                 std::string cache_dir = getCacheDir();
                 if (not cache_dir.empty() ) {
                     // TODO: Use OS-agnostic path separator here
-                    std::string file_name = cache_dir + "/" + name;
+                    std::string file_name = cache_dir + "/" + name + ".gblas_kernel";
                     //std::cout<<"looking for prog in file "<<file_name<<std::endl;
 
                     cacheFile file{file_name};
@@ -227,7 +227,7 @@ private:
 
                 #if defined(JITIFY_USE_CACHE)
                     if (not cache_dir.empty()) {
-                        std::string file_name = cache_dir + "/" + name;
+                        std::string file_name = cache_dir + "/" + name + ".gblas_kernel";
                         std::cout<<"writing in file "<<file_name<<std::endl;
                         cacheFile file{file_name};
 

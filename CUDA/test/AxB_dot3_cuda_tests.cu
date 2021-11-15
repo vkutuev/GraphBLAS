@@ -10,7 +10,7 @@
 #include <cmath>
 #include <random>
 #include <algorithm>
-#include <cstdint>
+#include <stdint.h>
 
 //Test instances and groupings
 

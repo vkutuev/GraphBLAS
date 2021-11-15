@@ -112,18 +112,18 @@ public:
       
       bool result = false; 
 
-      T_C dumC;
+      // Defining dummy instance only so we can introspect type
       T_M dumM;
-      T_A dumA;
-      T_B dumB;
 
       dim3 grid(gridsz);
       dim3 block(blocksz);
 
+
       std::string hashable_name = base_name + "_" + kernel_name;
       std::stringstream string_to_be_jitted ;
       string_to_be_jitted <<
-      hashable_name << std::endl << R"(#include ")" << hashable_name << R"(.cu")" << std::endl;
+      hashable_name << std::endl <<
+      R"(#include ")" << hashable_name << R"(.cu")" << std::endl;
 
 
 //      std::string hashable_name = base_name + "_" + kernel_name;
@@ -141,17 +141,14 @@ public:
       // dump it:
       std::cout << string_to_be_jitted.str();
 
+      std::vector<std::string> template_types = {GET_TYPE_NAME(dumM)};
+
       jit::launcher( hashable_name,
                      string_to_be_jitted.str(),
                      header_names, 
                      compiler_flags,
                      file_callback)
-                   .set_kernel_inst(  kernel_name,
-                                    { GET_TYPE_NAME(dumC),
-                                      GET_TYPE_NAME(dumM),
-                                      GET_TYPE_NAME(dumA),
-                                      GET_TYPE_NAME(dumB),
-                                      })
+                   .set_kernel_inst(  kernel_name, template_types)
                    .configure(grid, block)
                    .launch( nanobuckets, blockBucket, C->mat, M->mat, A->mat, B->mat);
 
