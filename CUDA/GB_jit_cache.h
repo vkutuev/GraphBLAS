@@ -39,8 +39,8 @@ using named_prog = std::pair<std::string, std::shared_ptr<Tv>>;
 class File_Desc
 {
 public:
-   void open_file() {}
-   void close_file() {}
+   void open( const char *path_and_file, const char *mode) {}
+   void close() {}
    void macrofy() {}
    std::string filename;
 };
@@ -199,6 +199,7 @@ private:
     {
      
         std::string name = file_object.filename;
+
         // Find memory cached T object
         auto it = map.find(name);
         if ( it != map.end()) {
@@ -208,34 +209,32 @@ private:
         else { // Find file cached T object
             bool successful_read = false;
             std::string serialized;
-            #if defined(JITIFY_USE_CACHE)
-                std::string cache_dir = getCacheDir();
-                if (not cache_dir.empty() ) {
-                    // TODO: Use OS-agnostic path separator here
-                    std::string file_name = cache_dir + "/" + name + ".gblas_kernel";
-                    //std::cout<<"looking for prog in file "<<file_name<<std::endl;
-
-                    cacheFile file{file_name};
-                    serialized = file.read_file();
-                    successful_read = file.is_read_successful();
-                }
-            #endif
+            std::string cache_dir = getCacheDir();
+            std::string file_name = cache_dir + "/" + name + ".gblas_kernel";
+            if (not cache_dir.empty() ) {
+                // TODO: Use OS-agnostic path separator here
+                //std::cout<<"looking for prog in file "<<file_name<<std::endl;
+                file_object.open(file_name.c_str(), "r");
+                cacheFile file{file_name};
+                serialized = file.read_file();
+                successful_read = file.is_read_successful();
+                file_object.close();
+            }
             if (not successful_read) {
                 // JIT compile and write to file if possible
+                file_object.open(file_name.c_str(), "w");
                 file_object.macrofy();
                 std::cout<<" got fresh content for "<<name<<std::endl;
+                file_object.close();
 
-                #if defined(JITIFY_USE_CACHE)
-                    if (not cache_dir.empty()) {
-                        std::string file_name = cache_dir + "/" + name + ".gblas_kernel";
-                        std::cout<<"writing in file "<<file_name<<std::endl;
-                        cacheFile file{file_name};
+                if (not cache_dir.empty()) {
+                    std::cout<<"writing in file "<<file_name<<std::endl;
+                    cacheFile file{file_name};
 
-                        cacheFile macrofied{file_object.filename};
-                        serialized = macrofied.read_file();
-                        file.write(serialized);
-                    }
-                #endif
+                    cacheFile macrofied{name};
+                    serialized = macrofied.read_file();
+                    file.write(serialized);
+                }
             }
             // Add deserialized T to cache and return
             map[name] = std::make_shared<std::string>(serialized);

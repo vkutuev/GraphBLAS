@@ -106,6 +106,7 @@ std::string GBJitCache::getFile(
     // Lock for thread safety
     std::lock_guard<std::mutex> lock(_program_cache_mutex);
 
+    // Macrofied version
     auto cached_file = getCachedFile( file_object, file_map );
     return *std::get<1>( cached_file ).get();
 }

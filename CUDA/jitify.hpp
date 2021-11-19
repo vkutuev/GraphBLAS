@@ -4128,6 +4128,7 @@ class KernelLauncher {
               << _stream << ">>>"
               << "(" << arg_types_string << ")" << std::endl;
 #endif
+
     return _kernel_inst->_cuda_kernel->launch(_grid, _block, _smem, _stream,
                                               arg_ptrs);
   }

@@ -33,11 +33,10 @@ class GB_cuda_semiring_factory: public jit::File_Desc {
         // file ptr
         FILE *fp;
 
-    void open( const char *path_and_file)
+    void open( const char *path_and_file, const char *mode)
     {
         std::cout<< "opening "<< path_and_file<<" for write"<< std::endl;  
-        const char mode = 'w';
-        fp = fopen( path_and_file, &mode);
+        fp = fopen( path_and_file, mode);
     }
 
     void close( )

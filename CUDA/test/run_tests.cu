@@ -3,9 +3,13 @@
 
 int main(int argc, char **argv) {
 
+
+    // TODO: Need to invoke GB_Init
     size_t init_size, max_size;
     init_size = 256*(1ULL<<10);
     max_size  = 256*(1ULL<<20);
+
+
 
     rmm_wrap_create_handle();
     //printf(" pool init size %ld, max size %ld\n", init_size, max_size);

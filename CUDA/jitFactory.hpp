@@ -102,8 +102,16 @@ class phase1launchFactory
   std::string base_name = "GB_jit";
   std::string kernel_name = "AxB_phase1";
 //  TODO REMOVE: std::string template_name = "GB_jit_AxB_phase1.cu";
+  const char *semiring;
 
-public: 
+public:
+
+  // This assumes the needed state on the GB_cuda_semiring_factory
+  // has already been populated
+  phase1launchFactory(const char *str_semiring) {
+      semiring = str_semiring;
+  }
+
 
   bool jitGridBlockLaunch(int gridsz, int blocksz, 
                           int64_t *nanobuckets, int64_t *blockBucket, 
@@ -117,7 +125,6 @@ public:
 
       dim3 grid(gridsz);
       dim3 block(blocksz);
-
 
       std::string hashable_name = base_name + "_" + kernel_name;
       std::stringstream string_to_be_jitted ;
@@ -139,18 +146,45 @@ public:
 //      #include )" << hashable_name << R"(".cu")";
 
       // dump it:
-      std::cout << string_to_be_jitted.str();
+    std::cout << string_to_be_jitted.str();
 
-      std::vector<std::string> template_types = {GET_TYPE_NAME(dumM)};
+    std::vector<std::string> template_types = {GET_TYPE_NAME(dumM)};
 
-      jit::launcher( hashable_name,
-                     string_to_be_jitted.str(),
-                     header_names, 
-                     compiler_flags,
-                     file_callback)
-                   .set_kernel_inst(  kernel_name, template_types)
-                   .configure(grid, block)
-                   .launch( nanobuckets, blockBucket, C->mat, M->mat, A->mat, B->mat);
+//    GB_cuda_semiring_factory mysemiringfactory = GB_cuda_semiring_factory ( ) ;
+//
+//    GrB_Semiring mysemiring;
+//    GrB_Monoid mymonoid;
+//
+//    // TODO: These should be created from the given templated types and maybe a semiring string
+//    GrB_Monoid_new(&mymonoid, GrB_PLUS_UINT64, 0ul);
+//    Grb_Info GrB_Semiring_new(&mysemiring, mymonoid, GrB_TIME_UINT64);
+//
+//
+//    // (1) create the semiring code and name
+//    mysemiringfactory.semiring_factory ( semiring, flipxy,
+//        ctype, A->get_grb_matrix()->type,
+//        B->get_grb_matrix()->type, M->get_grb_matrix()->type,
+//        Mask_struct,  // matrix types
+//        false, GB_sparsity(C->get_grb_matrix()),
+//        GB_sparsity(M->get_grb_matrix()),
+//        GB_sparsity(A->get_grb_matrix()),
+//        GB_sparsity(B->get_grb_matrix()) ) ;
+//
+//
+//
+//    // (2) ensure the jitifier has "GB_semiring_[mysemiring.sr_code].h"
+//    jit::GBJitCache filecache = jit::GBJitCache::Instance() ;
+//    filecache.getFile (mysemiringfactory) ;
+
+
+    jit::launcher( hashable_name,
+                   string_to_be_jitted.str(),
+                   header_names,
+                   compiler_flags,
+                   file_callback)
+                 .set_kernel_inst(  kernel_name, template_types)
+                 .configure(grid, block)
+                 .launch( nanobuckets, blockBucket, C->mat, M->mat, A->mat, B->mat);
 
       checkCudaErrors( cudaDeviceSynchronize() );
       result= true;
@@ -170,7 +204,7 @@ public:
 
   bool jitGridBlockLaunch(int gridsz, int blocksz, 
                           int64_t *nanobuckets, int64_t *blockBucket, 
-                          int64_t *bucketp, int64_t *bucket,
+                          int64_t *bucketp, int64_t *bucket, int64_t *offset,
                           matrix<T_C> *C, const int64_t cnz, const int64_t nblocks )
      {
       
@@ -196,7 +230,20 @@ public:
                      file_callback)
                    .set_kernel_inst( kernel_name, {})
                    .configure(grid, block)
-                   .launch( nanobuckets, blockBucket, bucketp, bucket, C->mat, cnz);
+                   .launch( nanobuckets, blockBucket, bucketp, bucket, offset,
+                            C->get_grb_matrix(), cnz, nblocks);
+
+//          // input, not modified:
+//    int64_t *__restrict__ nanobuckets,    // array of size 12-blockDim.x-by-nblocks
+//    int64_t *__restrict__ blockbucket,    // global bucket count, of size 12*nblocks
+//    // output:
+//    int64_t *__restrict__ bucketp,        // global bucket cumsum, of size 13
+//    int64_t *__restrict__ bucket,         // global buckets, of size cnz (== mnz)
+//    int64_t *__restrict__ offset,         // global offsets, for each bucket
+//    // inputs, not modified:
+//    GrB_Matrix C,             // output matrix
+//    const int64_t cnz,        // number of entries in C and M
+//    const int nblocks         // input number of blocks to reduce
 
       checkCudaErrors( cudaDeviceSynchronize() );
       result= true;

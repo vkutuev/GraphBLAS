@@ -130,6 +130,16 @@ T block_ReduceSum(thread_block g, T val)
 // GB_AxB_cuda_dot3_phase1 kernel, with the same # of threads and threadblocks.
 
 __global__
+void simple_nongrb_test(int i) {
+   printf("I'M HERE no GRB!");
+}
+
+__global__
+void simple_grb_test(GrB_Matrix C) {
+    printf("I'M HERE GRB");
+}
+
+__global__
 void AxB_phase2
 (
     // input, not modified:
@@ -145,6 +155,8 @@ void AxB_phase2
     const int nblocks         // input number of blocks to reduce
 )
 {
+    printf("In AxB_phase2 kernel\n");
+    printf("nanobuckets: %ld\n", nanobuckets[0]);
 
     //--------------------------------------------------------------------------
     // get C and M

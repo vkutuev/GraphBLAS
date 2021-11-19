@@ -75,14 +75,14 @@ class AxB_dot3_Test : public ::testing::Test
 // Test generator code, to allow parameterized tests
 // Uses jitFactory, dataFactory and GB_jit 
 template <typename T_C, typename T_M, typename T_A,typename T_B>
-bool test_AxB_phase1_factory( int TB, int64_t N, int64_t Anz, int64_t Bnz) {
+bool test_AxB_phase1_factory( int TB, int64_t N, int64_t Anz, int64_t Bnz, const char *str_semiring) {
 
     int gpuID;
     cudaGetDevice( &gpuID);
 
     std::cout<< "found device "<<gpuID<<std::endl;
 
-    phase1launchFactory<T_C, T_M, T_A, T_B> p1lF;
+    phase1launchFactory<T_C, T_M, T_A, T_B> p1lF(str_semiring);
 
     SpGEMM_problem_generator<T_C, T_M, T_A, T_B> G;
     int64_t Annz = N*N;
@@ -137,6 +137,16 @@ bool test_AxB_phase1_factory( int TB, int64_t N, int64_t Anz, int64_t Bnz) {
     return true;
 }
 
+
+template<typename T, typename I>
+void print_array(void *arr, I size, const char *name) {
+    std::cout << "Printing " << name << std::endl;
+    for(I i = 0; i < size; ++i) {
+        std::cout << static_cast<T*>(arr)[i] << ", ";
+    }
+    std::cout << std::endl << "Done." << std::endl;
+}
+
 template <typename T_C>
 bool test_AxB_phase2_factory( int TB, int64_t N, int64_t Anz, int64_t Bnz) {
 
@@ -178,23 +188,60 @@ bool test_AxB_phase2_factory( int TB, int64_t N, int64_t Anz, int64_t Bnz) {
 
     const int64_t mnz = GB_NNZ (M->mat) ;
 
-    int number_of_sms = GB_Global_gpu_sm_get (0) ;
+    std::cout << "mnz: " << mnz << std::endl;
+
+//    int number_of_sms = GB_Global_gpu_sm_get (0) ;
+    int number_of_sms = 1;
+
+    printf("number of sms: %d\n", number_of_sms);
 
     int ntasks =  ( mnz +chunksize -1)/chunksize;
+
+
+    printf("ntasks before: %d\n", ntasks);
+
     // Idea is to have each task work on a continguous block of columns of C
     ntasks = GB_IMIN( ntasks,  128*number_of_sms) ;    // ntasks will be grid.x
+
+    printf("ntasks after: %d\n", ntasks);
 
     // TODO: Verify that RMM is checking and throwing exceptions
     int64_t *nanobuckets = (int64_t*)rmm_wrap_malloc(NBUCKETS * nthrd * ntasks * sizeof (int64_t));
     int64_t *blockbucket = (int64_t*)rmm_wrap_malloc(NBUCKETS * ntasks * sizeof (int64_t));
     int64_t *bucketp = (int64_t*)rmm_wrap_malloc(NBUCKETS * sizeof (int64_t));
     int64_t *bucket = (int64_t*)rmm_wrap_malloc(Cnz * sizeof (int64_t));
+    int64_t *offset = (int64_t*)rmm_wrap_malloc(NBUCKETS * sizeof (int64_t));
 
+    std::cout << "nthrd: " << nthrd << ", ntasks: " << ntasks << std::endl;
     fillvector_constant(NBUCKETS * nthrd * ntasks, nanobuckets, (int64_t)1);
-    fillvector_constant(NBUCKETS * ntasks, nanobuckets, (int64_t)1);
+    fillvector_constant(NBUCKETS * ntasks, blockbucket, (int64_t)1);
+    fillvector_constant(NBUCKETS, bucketp, (int64_t)1);
+
+    print_array<T_C>(C->mat->x, Cnz, "C");
+    print_array<int64_t>(nanobuckets, NBUCKETS*nthrd*ntasks, "nanobuckets");
+    print_array<int64_t>(blockbucket, NBUCKETS*ntasks, "blockbucket");
+    print_array<int64_t>(bucketp, NBUCKETS, "bucketp");
+    print_array<int64_t>(bucket, Cnz, "bucket");
+//
+//    std::stringstream string_to_be_jitted ;
+//    string_to_be_jitted << "testInt" << std::endl << R"(#include "GB_jit_AxB_phase2.cu")" << std::endl;
+//
+//    dim3 grid(1);
+//    dim3 block(1);
+//
+//    jit::launcher( "testInt",
+//                   string_to_be_jitted.str(),
+//                   header_names,
+//                   compiler_flags,
+//                   file_callback)
+//            .set_kernel_inst( "simple_nongrb_test", { })
+//            .configure(grid, block)
+//            .launch( C->mat );
+
+
 
     p2lF.jitGridBlockLaunch( nblck, nthrd, nanobuckets, blockbucket,
-                            bucketp, bucket, C, Cnz, nblck);
+                            bucketp, bucket, offset, C, Cnz, nblck);
 
 //    bool jitGridBlockLaunch(int gridsz, int blocksz,
 //                            int64_t *nanobuckets, int64_t *blockBucket,
